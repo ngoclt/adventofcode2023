@@ -1,6 +1,6 @@
 import Foundation
 
-let day3 = Day3(
-    fileInput: "day3"
+let day4 = Day4(
+    fileInput: "day4"
 )
-day3.solve(isPart2: true)
+day4.solve()
