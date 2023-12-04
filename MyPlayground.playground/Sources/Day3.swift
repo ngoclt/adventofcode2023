@@ -12,13 +12,15 @@ public class Day3 {
     private(set) var matrix = [[String]]()
     private var numbers = [ValidPart]()
 
+    private var gearCoords = [String: [ValidPart]]()
+
     public init(
         fileInput: String = "day3"
     ) {
         self.fileInput = fileInput
     }
     
-    public func solve1() {
+    public func solve(isPart2: Bool) {
         do {
             let content = try Utils.readText(fileInput)
             let lines = content.split(separator:"\n")
@@ -49,39 +51,53 @@ public class Day3 {
             
             var sum = 0
             for number in numbers {
-                if verifyNumber(number.number, i: number.i, j: number.j) {
-                    print(number)
-                    sum += (Int(number.number) ?? 0)
+                if isPart2 {
+                    if let coord = isValidPart(number.number, i: number.i, j: number.j, gear: "*") {
+                        var newParts = gearCoords["\(coord.0)|\(coord.1)"] ?? [ValidPart]()
+                        newParts.append(number)
+                        gearCoords["\(coord.0)|\(coord.1)"] = newParts
+                    }
+                } else {
+                    if let _ = isValidPart(number.number, i: number.i, j: number.j, gear: nil) {
+                        sum += (Int(number.number) ?? 0)
+                    }
                 }
             }
-            
+
+            if isPart2 {
+                for (key, value) in gearCoords {
+                    if value.count > 1 {
+                        var gearRatio = 1
+                        for part in value {
+                            gearRatio *= (Int(part.number) ?? 1)
+                        }
+                        print("key: \(key), value: \(gearRatio)")
+                        sum += gearRatio
+                    }
+                }
+            }
             print("The answer is: \(sum)")
         } catch {
             print(error)
         }
     }
     
-    public func verifyNumber(_ number: String, i: Int, j: Int) -> Bool {
+    private func isValidPart(_ number: String, i: Int, j: Int, gear: String? = nil) -> (Int, Int)? {
         let rowBefore = i - 1
         let rowAfter = i + 1
         let columnBefore = j - 1
         let columnAfter = j + number.count
-
-//        print("rowBefore \(rowBefore)")
-//        print("rowAfter \(rowAfter)")
-//        print("columnBefore \(columnBefore)")
-//        print("columnAfter \(columnAfter)")
 
         if rowBefore >= 0 {
             for k in columnBefore...columnAfter {
                 if 
                     k >= 0,
                     k <= matrix[rowBefore].count - 1,
-                    matrix[rowBefore][k] != "."
+                    isValidGear(character: matrix[rowBefore][k], gear: gear)
                 {
                     print("1")
                     print("value: \(matrix[rowBefore][k])")
-                    return true
+                    return (rowBefore, k)
                 }
             }
         }
@@ -91,11 +107,11 @@ public class Day3 {
                 if 
                     k >= 0,
                     k <= matrix[rowAfter].count - 1,
-                    matrix[rowAfter][k] != "."
+                    isValidGear(character: matrix[rowAfter][k], gear: gear)
                 {
                     print("2")
                     print("value: \(matrix[rowAfter][k])")
-                    return true
+                    return (rowAfter, k)
                 }
             }
         }
@@ -105,11 +121,11 @@ public class Day3 {
                 if
                     k >= 0,
                     k <= matrix.count - 1,
-                    matrix[k][columnBefore] != "."
+                    isValidGear(character: matrix[k][columnBefore], gear: gear)
                 {
                     print("3")
                     print("value: \(matrix[k][columnBefore])")
-                    return true
+                    return (k, columnBefore)
                 }
             }
         }
@@ -119,19 +135,23 @@ public class Day3 {
                 if
                     k >= 0,
                     k <= matrix.count - 1,
-                    matrix[k][columnAfter] != "."
+                    isValidGear(character: matrix[k][columnAfter], gear: gear)
                 {
                     print("4")
                     print("value: \(matrix[k][columnAfter])")
-//                    print("k: \(k)")
-//                    print("fromRow: \(rowBefore)")
-//                    print("toRow: \(rowAfter)")
-//                    print("columnAfter: \(columnAfter)")
-                    return true
+                    return (k, columnAfter)
                 }
             }
         }
 
-        return false
+        return nil
+    }
+
+    public func isValidGear(character: String, gear: String? = nil) -> Bool {
+        if let gear {
+            return character == gear
+        }
+        
+        return character != "."
     }
 }
