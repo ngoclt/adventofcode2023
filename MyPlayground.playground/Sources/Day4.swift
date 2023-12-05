@@ -57,13 +57,42 @@ public class Day4 {
         return point
     }
 
-    public func solve() {
+    public func solve1() {
         var sum = 0
         for (i, card) in myNumbers.enumerated() {
             let winning = card.filter { winningNumbers[i].contains($0) }
             sum += calculatePoint(winning)
         }
 
+        print("The answer is: \(sum)")
+    }
+
+    public func solve2() {
+        let winningCounts = myNumbers.enumerated().map { (i, card) in
+            card
+                .filter { winningNumbers[i].contains($0) }
+                .enumerated()
+                .map { (j, _) in
+                    i + j + 1
+                }
+        }
+
+        var counts = myNumbers.map { _ in 1 }
+
+        for i in 0..<myNumbers.count {
+            var count = counts[i]
+            for j in 0..<i {
+                let winnings = winningCounts[j]
+                let argument = if (winnings.contains(i)) { 1 } else { 0 }
+                count += counts[j]*argument
+            }
+            counts[i] = count
+        }
+
+        print(winningCounts)
+        print(counts)
+
+        let sum = counts.reduce(0, +)
         print("The answer is: \(sum)")
     }
 }
